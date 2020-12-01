@@ -1,10 +1,10 @@
 /*
- * @Descripttion: 
+ * @Descripttion: 由于过滤器在3.0中移除了，所以这些方法只能引用，在computed中使用
  * @version: 
  * @Author: Empty
  * @Date: 2020-08-15 18:05:56
  * @LastEditors: Empty
- * @LastEditTime: 2020-08-17 14:16:31
+ * @LastEditTime: 2020-12-01 16:37:45
  */
 // 过滤父级属性为null的字段
 export function filtersKeys(obj, item, tips = "暂无数据") {

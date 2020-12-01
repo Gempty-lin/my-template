@@ -4,21 +4,40 @@
  * @Author: Empty
  * @Date: 2020-11-30 16:24:14
  * @LastEditors: Empty
- * @LastEditTime: 2020-12-01 15:35:30
+ * @LastEditTime: 2020-12-01 17:59:20
 -->
+
 <template>
-    <div class="home">
-        <!-- <img alt="Vue logo" src="../assets/logo.png"> -->
+    <div id="app">
+        {{name}}
+        <img :src="require('@/assets/images/def_img.gif')" alt="">
+        <p>{{age}}</p>
+        <button @click="plusOne()">+</button>
     </div>
 </template>
 
 <script>
-    // @ is an alias to /src
-
+    import { ref , getCurrentInstance } from 'vue'
     export default {
-        name: 'Home',
-        components: {
-
+        name: 'app',
+        data() {
+            return {
+                name: 'xiaosan'
+            }
+        },
+        setup() {
+            const name = ref('小四')
+            const age = ref(18)
+            const vm = getCurrentInstance();
+            console.log(vm.$store)
+            function plusOne() {
+                age.value++ //想改变值或获取值 必须.value
+            }
+            return { //必须返回 模板中才能使用
+                name,
+                age,
+                plusOne
+            }
         }
     }
 </script>
