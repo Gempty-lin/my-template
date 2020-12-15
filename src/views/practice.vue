@@ -4,7 +4,7 @@
  * @Author: Empty
  * @Date: 2020-12-02 09:58:47
  * @LastEditors: Empty
- * @LastEditTime: 2020-12-03 14:03:17
+ * @LastEditTime: 2020-12-09 12:05:20
 -->
 <template>
     <div class="vue3_demo">
@@ -39,7 +39,7 @@
     </div>
 </template>
 <script>
-import { ref, toRefs, unref } from 'vue';
+import { getCurrentInstance, ref, toRefs, unref } from 'vue';
 export default {
     setup(){
         /*
@@ -48,7 +48,8 @@ export default {
             2.如果对象是ref ，直接赋值则都会响应，跟浅复制一个道理；
             3.unref处理过后的参数并不会转换成响应式；
         */ 
-
+        let vm = getCurrentInstance();
+        console.log(vm)
         const objData = ref({
             name:"成",
             age:18,

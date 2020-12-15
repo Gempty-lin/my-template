@@ -4,7 +4,7 @@
  * @Author: Empty
  * @Date: 2020-11-30 16:24:14
  * @LastEditors: Empty
- * @LastEditTime: 2020-12-01 17:59:20
+ * @LastEditTime: 2020-12-09 11:48:59
 -->
 
 <template>
@@ -29,7 +29,7 @@
             const name = ref('小四')
             const age = ref(18)
             const vm = getCurrentInstance();
-            console.log(vm.$store)
+            console.log(vm)
             function plusOne() {
                 age.value++ //想改变值或获取值 必须.value
             }
