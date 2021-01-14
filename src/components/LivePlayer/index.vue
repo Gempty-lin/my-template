@@ -79,7 +79,6 @@
         mounted() {
             // let that = this;
             this.player = videojs(this.$refs.videoPlayer, this.options, function onPlayerReady() {
-                console.log('onPlayerReady', this);
                 this.on('error',(e)=>{
                     this.errorDisplay.close();
                 })
@@ -101,7 +100,7 @@
         height: 100%;
         overflow: hidden;
         .hide_pro{
-            /deep/.plyr__controls .plyr__controls__item.plyr__progress__container{
+            ::v-deep.plyr__controls .plyr__controls__item.plyr__progress__container{
                 display: none;
             }
         }

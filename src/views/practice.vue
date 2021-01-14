@@ -4,7 +4,7 @@
  * @Author: Empty
  * @Date: 2020-12-02 09:58:47
  * @LastEditors: Empty
- * @LastEditTime: 2020-12-09 12:05:20
+ * @LastEditTime: 2020-12-29 16:53:56
 -->
 <template>
     <div class="vue3_demo">
@@ -32,14 +32,13 @@
                 <input type="text" v-model="printData.other">
             </div>
             <div class="btn" @click="Print"> 打印</div>
-            {{printData}}
-
+            <!-- {{printData}} -->
         </div>
         
     </div>
 </template>
 <script>
-import { getCurrentInstance, ref, toRefs, unref } from 'vue';
+import { getCurrentInstance, reactive, ref, toRefs, unref } from 'vue';
 export default {
     setup(){
         /*
@@ -48,8 +47,11 @@ export default {
             2.如果对象是ref ，直接赋值则都会响应，跟浅复制一个道理；
             3.unref处理过后的参数并不会转换成响应式；
         */ 
-        let vm = getCurrentInstance();
-        console.log(vm)
+        let state = reactive({
+            allArr:[],
+        });
+
+        let {ctx} = getCurrentInstance();
         const objData = ref({
             name:"成",
             age:18,
@@ -63,12 +65,13 @@ export default {
         const Print = ()=>{
             printData = unref(objData.value.name);
             console.log(printData);
-            // printData.value = objData.value;
         }
         return{
+            ...toRefs(state),
             objData,
             printData,
-            Print
+            Print,
+
         }
     }
 }
