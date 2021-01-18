@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { MessageBox, Message } from 'element-ui'
+import { ElMessage , ElNotification ,ElMessageBox  } from 'element-plus';
 import store from '@/store'
 import { getToken } from '@/utils/auth'
 
@@ -35,16 +35,15 @@ service.interceptors.response.use(
         const res = response.data
         // if the custom code is not 20000, it is judged as an error.
         if (response.status !== 200) {
-            Message({
+            ElMessage({
                 message: response.status || 'Error',
                 type: 'error',
                 duration: 5 * 1000
             })
-
             // 50008: Illegal token; 50012: Other clients logged in; 50014: Token expired;
             if (response.status === 401) {
                 // to re-login
-                MessageBox.confirm('登陆超时或登录信息异常，需要重新登录', '重新登录', {
+                ElMessageBox('登陆超时或登录信息异常，需要重新登录', '重新登录', {
                     confirmButtonText: 'Re-Login',
                     cancelButtonText: 'Cancel',
                     type: 'warning'
@@ -60,7 +59,7 @@ service.interceptors.response.use(
                 return Promise.reject(res)
             }
             if (res.ResultCD != 200) {
-                Message({
+                ElMessage({
                     message: res.ErrorMsg || 'Error',
                     type: 'error',
                     duration: 5 * 1000
@@ -72,7 +71,7 @@ service.interceptors.response.use(
     },
     error => {
         // console.log('err' + error) // for debug
-        Message({
+        ElMessage({
             message: error.message,
             type: 'error',
             duration: 5 * 1000
