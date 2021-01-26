@@ -4,12 +4,12 @@
  * @Author: Empty
  * @Date: 2020-11-09 14:14:38
  * @LastEditors: Empty
- * @LastEditTime: 2020-12-01 16:49:45
+ * @LastEditTime: 2020-12-11 16:48:27
  */
 import NProgress from 'nprogress' // progress bar
 import 'nprogress/nprogress.css' // progress bar style
-import router from './router'
-import store from './store'
+import router from '@/router'
+import store from '@/store'
 
 import {getToken} from '@/utils/auth' // get token from cookie
 import getPageTitle from '@/utils/get-page-title'
@@ -28,7 +28,7 @@ router.beforeEach(async (to, from, next) => {
     document.title = getPageTitle(to.meta.title)
 
     // 如果本地存在token
-    const hasToken = getToken() || true;
+    const hasToken = getToken() || false;
     // 如果有token则跳过登陆界面，没有则进入登陆界面
     if (hasToken) {
         if (to.path === '/login') {
@@ -67,6 +67,9 @@ router.beforeEach(async (to, from, next) => {
             NProgress.done()
         }
     }
+
+
+    
 })
 
 router.afterEach(() => {

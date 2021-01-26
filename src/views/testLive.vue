@@ -14,7 +14,10 @@
         <video ref="RecordingVideo" controls autoplay playsinline style="height: 620px;">
         </video>
         <!-- <embed ref="RecordingVideo" id="rtmp-streamer" bgcolor="#999999" quality="high" width="320" height="240" allowScriptAccess="sameDomain" type="application/x-shockwave-flash" /> -->
-        <button>推</button>
+        <div>
+            <button @click="publishStream">开始推流</button>
+            <button @click="unpublishStream">停止推流</button>
+        </div>
     </div>
 </template>
 <script>
@@ -37,13 +40,8 @@
 
             // 屏幕录制
             let ScreenRecording;
-            let Media;
-            async function getFlashLive() {
-                let streamer = new rtmpStreamer(RecordingVideo.value);
-                console.log(streamer)
-                // streamer.publish()
-            }
-            // getFlashLive();
+            let Media = ref(null);
+            let client = ref(null)
             async function PublishLive() {
                 // 验证WebRTC是否存在
                 try {
@@ -69,7 +67,7 @@
                         // stream 是 流数据 （音视）
                         // URL.createObjectURL 无法转换 需要换成现在用的模式
                         // var video = RecordingVideo.value;
-
+                        console.log(stream)
                         // 合成音频
                         AudioTrack = stream.getAudioTracks()
                         Recording.addTrack(AudioTrack[0]);
@@ -105,41 +103,55 @@
             // PublishLive();
             async function TRTCLive() {
                 let localStream = TRTC.createStream({ userId: "63", audio: true, screen: true });
-                localStream.initialize().then((stream) => {
-                    // console.log('initialize localStream success');
+                localStream.setVideoProfile('720p');
+                // localStream.setScreenProfile('1080_2');
+                localStream.setScreenProfile({ width: 1920, height: 1080, frameRate: 30, bitrate: 4000 });
+                localStream.initialize().then(() => {
+                    // 设置内容
+                    localStream.setVideoContentHint('motion')
                     // 本地流初始化成功，可通过Client.publish(localStream)发布本地音视频流
                     let video = RecordingVideo.value;
-                    video = localStream
-                    console.log(localStream)
-                    console.log(video)
-                    // video.srcObject = localStream;
-                    let options = {
-                        mode: 'live',
-                        userSig: 'eJyrVgrxCdYrSy1SslIy0jNQ0gHzM1NS80oy0zLBwmbGUNHilOzEgoLMFCUrQxMDAxNzM2MzQ4hMakVBZlEqUNzU1NTIwMAAIlqSmQsSMzM0sDQztLAwh5qSmQ40NDjJIC8pyiysuKTYOci7qtTF1M3FI8UpsyoqKzEzN608Iy0pzT-CxTzKNd9WqRYARWQwpw__',
-                        sdkAppId: 1400476361,
-                        userId: "63",
-                        streamId: "4edcc26791f9597a"
-                    }
-                    let client = TRTC.createClient({ mode: 'rtc', ...options });
-                    client.join({ roomId: 2249, role: 'anchor' }).then(() => {
-                        client.switchRole('anchor').then(() => {
-                            // 连麦观众角色切换为主播，开始推流
-                            client.publish(localStream);
-                        });
-                    });
-
+                    video.srcObject = localStream.mediaStream_;
+                    Media.value = localStream;
                 }).catch(error => {
                     console.error('failed initialize localStream ' + error);
                 });
-                // console.log()
-
-
-
-
             }
-            TRTCLive()
+            async function CreateClient() {
+                let options = {
+                    mode: 'live',
+                    userSig: 'eJyrVgrxCdYrSy1SslIy0jNQ0gHzM1NS80oy0zLBwmbGUNHilOzEgoLMFCUrQxMDAxNzM2MzQ4hMakVBZlEqUNzU1NTIwMAAIlqSmQsSMzM0sDQztLAwh5qSmQ40NDjJIC8pyiysuKTYOci7qtTF1M3FI8UpsyoqKzEzN608Iy0pzT-CxTzKNd9WqRYARWQwpw__',
+                    sdkAppId: 1400476361,
+                    userId: "63",
+                    streamId: "1739ddde07815363"
+                }
+                client.value = TRTC.createClient({ ...options });
+            }
+            async function publishStream() {
+                let nowClient = client.value
+                nowClient.join({ roomId: 2251, role: 'anchor' }).then(() => {
+                    // 连麦观众角色切换为主播，开始推流
+                    console.log('开始推流')
+                    nowClient.publish(Media.value);
+                });
+            }
+            async function unpublishStream() {
+                let nowClient = client.value
+                nowClient.unpublish(Media.value).then(() => {
+                    console.log('停止了推流' + new Date())
+                    nowClient.leave().then(() => {
+                        // 连麦观众角色切换为主播，开始推流
+                        console.log('离开了房间' + new Date())
+                    });
+                });
+            }
+
+            TRTCLive();
+            CreateClient();
             return {
-                RecordingVideo
+                RecordingVideo,
+                publishStream,
+                unpublishStream
             }
         }
     }

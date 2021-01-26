@@ -4,30 +4,83 @@
  * @Author: Empty
  * @Date: 2020-11-30 16:24:14
  * @LastEditors: Empty
- * @LastEditTime: 2020-12-01 16:53:17
+ * @LastEditTime: 2020-12-23 17:00:01
  */
 import { createApp } from 'vue';
 import App from './App.vue';
 import './registerServiceWorker';
 import router from './router';
 import store from './store';
+import ElementPlus from 'element-plus';
+import 'element-plus/lib/theme-chalk/index.css';
+
 
 let appVue = createApp(App);
+
 // 路由守卫
-import "@/permission";
-// 图片懒加载
-// vue3.0 图片懒加载需要将Vue.prototype.$Lazyload = lazy 修改成 Vue.config.globalProperties.$Lazyload = lazy
-// 貌似3.0已经不适用了
-import VueLazyload from 'vue-lazyload';
-appVue.use(VueLazyload, {
-    loading: require('@/assets/images/def_img.gif'), //加载中图片，一定要有，不然会一直重复加载占位图
-    error: require('@/assets/images/def_bili.gif') //加载失败图片
-});
+import "@/router/permission";
+// 自定义指令
+import ImgOrder from "@/directive/imgLazy.js";
+import directive from '@/directive'
 
 // 是否移动端
 appVue.config.globalProperties.$is_mobile = function () {
     let flag = navigator.userAgent.match(/(phone|pad|pod|iPhone|iPod|ios|iPad|Android|Mobile|BlackBerry|IEMobile|MQQBrowser|JUC|Fennec|wOSBrowser|BrowserNG|WebOS|Symbian|Windows Phone)/i);
     return flag;
 };
+appVue.config.globalProperties.$formatDate = function (date, fmt, is_week = false) {
+    const padLeftZero = (str) => {
+        return ('00' + str).substr(str.length);
+    }
 
-createApp(App).use(store).use(router).mount('#app');
+    date = new Date(date * 1000);
+    fmt = fmt || 'yyyy-MM-dd hh:mm';
+    if (/(y+)/.test(fmt)) {
+        fmt = fmt.replace(RegExp.$1, (date.getFullYear() + '').substr(4 - RegExp.$1.length));
+    };
+    let o = {
+        'M+': date.getMonth() + 1,
+        'd+': date.getDate(),
+        'h+': date.getHours(),
+        'm+': date.getMinutes(),
+        's+': date.getSeconds()
+    };
+    for (let k in o) {
+        if (new RegExp(`(${k})`).test(fmt)) {
+            let str = o[k] + '';
+            fmt = fmt.replace(RegExp.$1, (RegExp.$1.length === 1) ? str : padLeftZero(str));
+        }
+    }
+
+    if (is_week) {
+        let dateArr = ["日", "一", "二", "三", "四", "五", "六"];
+        let day = dateArr[date.getDay()];
+        return fmt + ' 星期' + day
+    }
+
+
+    return fmt;
+};
+appVue.config.globalProperties.$pickupkey = (Array, key) => {
+    let newArray = []
+    for (let i = 0; i < Array.length; i++) {
+        const ele = Array[i];
+        newArray[i] = ele[key];
+    }
+    return newArray
+}
+
+appVue.config.globalProperties.$base = 'https://img.0757ty.com/';
+
+appVue.config.globalProperties.$live_bg = require('@/assets/images/def_img.gif')
+
+// 自定义指令使用
+appVue.use(ImgOrder, {
+    loadingImg: require('@/assets/images/def_bili.gif'),
+    errorImg: require('@/assets/images/def_img.gif'),
+    baseUrl: 'https://img.0757ty.com/',
+});
+appVue.use(directive);
+
+appVue.use(ElementPlus, { size: 'small', zIndex: 3000 });
+appVue.use(store).use(router).mount('#app');
