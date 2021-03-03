@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2020-06-09 11:11:45
- * @LastEditTime: 2020-08-25 16:39:15
+ * @LastEditTime: 2020-12-26 15:06:39
  * @LastEditors: Empty
  * @Description: In User Settings Edit
  * @FilePath: \js-\websocket.js
@@ -16,66 +16,62 @@ import router from "@/router"
 var global_callback = null;
 var websock = null;
 
-function sleep(time) {
-    var startTime = new Date().getTime() + parseInt(time, 10);
-    while (new Date().getTime() < startTime) {}
-};
-
-
 
 var heartCheck = {
-    timeout: 50000, //55s发一次心跳
+    timeout: 55000, //50s发一次心跳
     timeoutObj: null,
     serverTimeoutObj: null,
-    reset: function() {
+    reset: function () {
         clearTimeout(this.timeoutObj);
         clearTimeout(this.serverTimeoutObj);
         return this;
     },
-    start: function() {
+    start: function () {
         var self = this;
-        this.timeoutObj = setTimeout(function() {
+        this.timeoutObj = setTimeout(function () {
             //这里发送一个心跳，后端收到后，返回一个心跳消息，
             //onmessage拿到返回的心跳就说明连接正常
             sendSock(`{"actionType":"ping"}`, () => {
                 // console.log("客户端 to 服务端 ping!!!" + new Date())
             })
-            self.serverTimeoutObj = setTimeout(function() { //如果超过一定时间还没重置，说明后端主动断开了
+            self.serverTimeoutObj = setTimeout(function () { //如果超过一定时间还没重置，说明后端主动断开了
                 websock.close(); //如果onclose会执行reconnect，我们执行ws.close()就行了.如果直接执行reconnect 会触发onclose导致重连两次
-            }, self.timeout)
-        }, this.timeout)
+            }, self.timeout);
+        }, this.timeout);
     }
 }
-
+let handle = {
+    onmessage: (e) => { },
+    onopen: () => { }
+};
 // socket初始化
-function initWebSocket(url, reconnect = false, onmsg = websocketonmessage) { //初始化weosocket
+function initWebSocket(url, reconnent = false) { //初始化weosocket
     //ws地址
     var wsuri = `${url}`;
     websock = new WebSocket(wsuri);
-    websock.onmessage = function(e) {
-        // 心跳重置
-        heartCheck.reset();
-        heartCheck.start();
-        onmsg(e);
+    websock.onmessage = function (e) {
+        handle.onmessage(JSON.parse(e.data));
+        websocketonmessage(e);
     }
-    websock.onopen = function() {
+    websock.onopen = function () {
         // 心跳重置
         heartCheck.reset();
         heartCheck.start();
         console.log("ws连接成功!" + new Date());
+        handle.onopen();
         // 判断用户是否登录了，登录则websock登录
         if (store.state.user_info) {
-            let user_info = {
-                actionType: "login",
-                user_id: store.state.user_info.user.id,
-                client_type: 1,
-                portrait: store.state.user_info.user.file_path ? store.state.user_info.user.file_path:null,
-                nickname: store.state.user_info.user.nickname ? store.state.user_info.user.nickname : null,
-                auth_token: store.state.user_info.auth_token ? store.state.user_info.auth_token : store.state.auth_token
-            }
+            // let user_info = {
+            //     actionType: "login",
+            //     user_id: store.state.user_info.user.id ? store.state.user_info.user.id : 0,
+            //     client_type: 1,
+            //     portrait: store.state.user_info.user.file_path ? store.state.user_info.user.file_path : null,
+            //     nickname: store.state.user_info.user.nickname ? store.state.user_info.user.nickname : null,
+            //     auth_token: store.state.user_info.auth_token ? store.state.user_info.auth_token : store.state.auth_token
+            // }
             sendSock(JSON.stringify(user_info));
         }
-        if (router.history.current.name == "liveRoom" && reconnect) {
+        if (router.history.current.name == "liveRoom" && reconnent) {
             let info = {
                 actionType: "join_group",
                 group_id: router.history.current.params.id,
@@ -86,23 +82,31 @@ function initWebSocket(url, reconnect = false, onmsg = websocketonmessage) { //�
     }
 
     // 连接关闭
-    websock.onclose = function(e) {
-            console.log("ws连接关闭...1s后尝试重连......" + new Date(), e.code , e);
-            //连接失败后，5s尝试重连
-            let CloseTime = setTimeout(function() {
-                clearTimeout(CloseTime);
-                initWebSocket(url, true, onmsg);
-            }, 1000);
+    websock.onclose = function (e) {
+        console.log("ws连接关闭...1s后尝试重连......" + new Date(), e.code, e);
+        //连接失败后，5s尝试重连
+        if (e.code - 0 == 1000) {
+            return
         }
-        //连接发生错误的回调方法
-        // websock.onerror = function() {
-        //     console.log("WebSocket连接发生错误，尝试重连中......");
-        //     //连接失败后，尝试重连
-        //     let ErrorTime = setTimeout(function() {
-        //         clearTimeout(ErrorTime);
-        //         initWebSocket(url, true);
-        //     }, 5000);
-        // }
+        let CloseTime = setTimeout(function () {
+            clearTimeout(CloseTime);
+            if (router.history.current.name == "liveRoom") {
+                initWebSocket(url, true);
+            } else {
+                initWebSocket(url);
+            }
+
+        }, 1000);
+    }
+    //连接发生错误的回调方法
+    // websock.onerror = function() {
+    //     console.log("WebSocket连接发生错误，尝试重连中......");
+    //     //连接失败后，尝试重连
+    //     let ErrorTime = setTimeout(function() {
+    //         clearTimeout(ErrorTime);
+    //         initWebSocket(url, true);
+    //     }, 5000);
+    // }
 }
 
 
@@ -115,13 +119,13 @@ function sendSock(agentData, callback) {
         websock.send(agentData, callback);
     } else if (websock.readyState === websock.CONNECTING) {
         // 若是 正在开启状态，则等待1s后重新调用
-        let sendTime = setTimeout(function() {
+        let sendTime = setTimeout(function () {
             sendSock(agentData, callback);
             clearTimeout(sendTime);
         }, 3000);
     } else {
         // 若未开启 ，则等待1s后重新调用
-        let sendTime = setTimeout(function() {
+        let sendTime = setTimeout(function () {
             sendSock(agentData, callback);
             clearTimeout(sendTime);
         }, 3000);
@@ -153,6 +157,8 @@ function websocketonmessage(e) {
             break;
         case "sys_pong":
             // console.log("服务端 to 客户端 pong!!")
+            heartCheck.reset();
+            heartCheck.start();
             break;
         default:
             // console.log(data)
@@ -165,4 +171,4 @@ function websocketonmessage(e) {
 }
 
 
-export { sendSock, initWebSocket, websock, websocketonmessage, heartCheck }
+export { sendSock, initWebSocket, websock, websocketonmessage, heartCheck, handle }

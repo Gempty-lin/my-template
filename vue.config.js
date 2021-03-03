@@ -5,7 +5,7 @@ function resolve(dir) {
   return path.join(__dirname, dir)
 }
 
-const name ='青草园风控系统' // page title
+const name = '青草园风控系统' // page title
 
 // If your port is set to 80,
 // use administrator privileges to execute the command line.
@@ -20,7 +20,7 @@ const port = process.env.port || process.env.npm_config_port || 9528 // dev port
 const serve = 'http://test.admin.0757ty.com/'
 console.log(process.env.NODE_ENV)
 if (process.env.NODE_ENV === "") {
-    
+
 }
 
 module.exports = {
@@ -32,10 +32,12 @@ module.exports = {
    * Detail: https://cli.vuejs.org/config/#publicpath
    */
   publicPath: './',
+
   outputDir: 'dist',
   assetsDir: 'static',
   lintOnSave: false,
   productionSourceMap: false,
+
   devServer: {
     port: port,
     open: true,
@@ -45,23 +47,22 @@ module.exports = {
     },
     // before: require('./mock/mock-server.js')
     proxy: {
-        '/system': {
-            target: serve,
-            changeOrigin: true,
-            pathRewrite: {
-                '/system': '/system'
-            }
-        },
-        '/api': {
-            target: serve,
-            changeOrigin: true,
-            pathRewrite: {
-                '/api': '/api'
-            }
-        },
+      '/system': {
+        target: serve,
+        changeOrigin: true,
+        pathRewrite: {
+          '/system': '/system'
+        }
+      },
+      '/api': {
+        target: serve,
+        changeOrigin: true,
+        pathRewrite: {
+          '/api': '/api'
+        }
+      },
     }
   },
-
 
   configureWebpack: {
     // provide the app's title in webpack's name field, so that
@@ -73,6 +74,7 @@ module.exports = {
       }
     }
   },
+
   css: {
     loaderOptions: {
       sass: {
@@ -82,6 +84,7 @@ module.exports = {
       }
     }
   },
+
   chainWebpack(config) {
     // it can improve the speed of the first screen, it is recommended to turn on preload
     config.plugin('preload').tap(() => [
@@ -121,7 +124,7 @@ module.exports = {
             .plugin('ScriptExtHtmlWebpackPlugin')
             .after('html')
             .use('script-ext-html-webpack-plugin', [{
-            // `runtime` must same as runtimeChunk name. default is `runtime`
+              // `runtime` must same as runtimeChunk name. default is `runtime`
               inline: /runtime\..*\.js$/
             }])
             .end()
@@ -153,5 +156,12 @@ module.exports = {
           config.optimization.runtimeChunk('single')
         }
       )
+  },
+
+  pwa: {
+    msTileColor: '#FFFFFF',
+    manifestOptions: {
+      background_color: '#B8E986'
+    }
   }
 }
