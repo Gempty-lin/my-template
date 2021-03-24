@@ -20,7 +20,7 @@
         data() {
             return {
                 // playUrl:"https://video.0757ty.com/64346eedvodcq1259199430/934761525285890808038278057/playlist.f5.mp4",
-                options:{
+                options: {
                     controls: true, // 是否显示控制条
                     poster: this.$def_live, // 视频封面图地址
                     preload: 'auto',
@@ -29,10 +29,10 @@
                     language: 'zh-CN', // 设置语言
                     muted: false, // 是否静音
                     inactivityTimeout: false,
-                    sources:[ // 视频源
+                    sources: [ // 视频源
                         {
                             src: this.playUrl,
-                            type: this.is_live?'application/x-mpegURL':'video/mp4',
+                            type: this.is_live ? 'application/x-mpegURL' : 'video/mp4',
                             poster: this.$def_live
                         }
                     ],
@@ -71,18 +71,49 @@
                 type: String,
                 default: ""
             },
-            is_live:{
-                type:Boolean,
-                default:true
+            is_live: {
+                type: Boolean,
+                default: true
             }
         },
         mounted() {
             // let that = this;
             this.player = videojs(this.$refs.videoPlayer, this.options, function onPlayerReady() {
-                this.on('error',(e)=>{
+                let player = this;
+                this.on('error', (e) => {
                     this.errorDisplay.close();
                 })
+
+                this.hideControls(player);
             })
+        },
+        hideControls(player) {
+            // 工具栏 隐藏
+            player.userActive(false);
+            var userActivity, activityCheck, inactivityTimeout;
+            player.on('mousemove', function () {
+                userActivity = true;
+            });
+            activityCheck = setInterval(function () {
+                // 检查鼠标是否被移动
+                if (userActivity) {
+                    // 重置活动跟踪器
+                    userActivity = false;
+                    // 如果用户状态处于非活动状态，请将状态设置为活动状态
+                    if (player.userActive() === false) {
+                        player.userActive(true);
+                    }
+                    // 清除任何现有的不活动超时以启动计时器
+                    clearTimeout(inactivityTimeout);
+                    // 在X秒内，如果没有更多的活动发生，用户将被视为不活动
+                    inactivityTimeout = setTimeout(function () {
+                        // 防止在activityCheck循环拾取下一个用户活动之前可以触发非活动超时的情况。
+                        if (!userActivity) {
+                            player.userActive(false);
+                        }
+                    }, 2000);
+                }
+            }, 250);
         },
         beforeDestroy() {
             if (this.player) {
@@ -90,7 +121,7 @@
             }
         },
         methods: {
-       
+
         }
     }
 </script>
@@ -99,11 +130,12 @@
         width: 100%;
         height: 100%;
         overflow: hidden;
-        .hide_pro{
-            ::v-deep.plyr__controls .plyr__controls__item.plyr__progress__container{
+
+        // 隐藏错误提示
+        .hide_pro {
+            ::v-deep.plyr__controls .plyr__controls__item.plyr__progress__container {
                 display: none;
             }
         }
     }
-    
 </style>

@@ -69,6 +69,28 @@ appVue.config.globalProperties.$pickupkey = (Array, key) => {
     }
     return newArray
 }
+appVue.config.globalProperties.$ArrayRecursion = (array, result = []) => {
+    if (array.length === 0) {
+        return result;
+    }
+    if (result.length === 0) {
+        result = array.shift();
+        return this.getCombines(array, result)
+    } else {
+        let arrItem = array.shift();
+        let emtpyArr = [];
+        result.forEach(ele => {
+            arrItem.forEach(msg => {
+                if (typeof ele === 'object') {
+                    emtpyArr.push([...ele, msg])
+                } else {
+                    emtpyArr.push([ele, msg])
+                }
+            })
+        });
+        return this.getCombines(array, emtpyArr);
+    }
+}
 
 appVue.config.globalProperties.$base = 'https://img.0757ty.com/';
 
